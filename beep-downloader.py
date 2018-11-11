@@ -12,13 +12,11 @@ import tempfile
 from colorama import init, Fore, Style
 from requests.auth import HTTPBasicAuth
 from html import unescape
-from urllib.parse import quote
 
 GET_FILES_URL = "https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-file-entries?repositoryId=%d&folderId=%d"
 GET_SUBFOLDERS_URL = "https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-folders?repositoryId=%d&parentFolderId=%d"
-BEEP_LOGIN_URL = "https://aunicalogin.polimi.it/aunicalogin/aunicalogin/controller/IdentificazioneUnica.do?&jaf_currentWFID=main&polij_step=0&__pj0=0&__pj1=5111b95d3a1ad2c39f675fd752d1b1f0"
-BEEP_LOGIN_URL2 = "https://aunicalogin.polimi.it/aunicalogin/aunicalogin/controller/AunicaLogin.do?evn_checkCookieSSO=evento&COOKIES_VALUES_SSO_LOGOUT=S436_-S557_-&id_servizio=557&id_servizio_idp=436&ID_SERVIZIO_VERIFICATO=557&id_servizio_idp=436&__pj0=0&__pj1=ac291c86988ea187fc152a44be9f3679"
-DOWNLOAD_FILE_URL = "https://beep.metid.polimi.it/documents/%d/%d/%s"
+BEEP_LOGIN_URL = "https://aunicalogin.polimi.it/aunicalogin/aunicalogin/controller/IdentificazioneUnica.do?&jaf_currentWFID=main&polij_step=0&__pj0=0&__pj1=5d4116fc58f397506f8c792adf1b1270"
+DOWNLOAD_FILE_URL = "https://beep.metid.polimi.it/c/document_library/get_file?groupId=%d&folderId=%d&title=%s"
 
 
 def format_size(num_bytes):
@@ -33,26 +31,17 @@ def perform_beep_login(username, password):
     session = requests.Session()
     print("    Setting up session")
     session.get("https://beep.metid.polimi.it/polimi/login")
-    print("    Aunicalogin step 1/3")
-    session.post(BEEP_LOGIN_URL, data={
+    print("    Aunicalogin")
+    res = session.post(BEEP_LOGIN_URL, data={
         "login": username, "password": password, "evn_conferma": ""})
-    print("    Aunicalogin step 2/3")
-    session.get("https://beep.metid.polimi.it/polimi/login")
-    print("    Aunicalogin step 3/3")
-    sso_step = session.post(BEEP_LOGIN_URL2, data={
-        "SSO_LOGIN": session.cookies.get("SSO_LOGIN"),
-        "MATRICOLA_SCELTA": "",
-        "COOKIE_HCSS": "",
-        "impersonificato": "",
-        "RESTA_CONNESSO": "",
-        "polij_device_category": "DESKTOP"
-    }).content.decode("latin")
     sso_data = {}
-    for group in re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]+)"\/>', sso_step):
+    for group in re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]+)"\/>', res.content.decode("latin")):
         sso_data[unescape(group[0])] = unescape(group[1])
     print("    Shibboleth SAML login")
     session.post(
         "https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST", data=sso_data)
+    print("    Back to beep")
+    session.get("https://beep.metid.polimi.it/polimi/login")
     print("    Login succesful: JSESSIONID=%s" %
           session.cookies.get("JSESSIONID"))
     return session.cookies
@@ -121,13 +110,14 @@ def get_download_list_site(site, cache, base_dir):
     size = 0
     download_size = 0
     to_download = list()
+
     for f in site["structure"]["files"]:
         id = f["fileEntryId"]
         cached_file = get_file_from_cache(cache.get("structure", {}), id)
         if cached_file.get("modifiedDate") != f["modifiedDate"]:
             download_size += f["size"]
             download_url = DOWNLOAD_FILE_URL % (
-                f["groupId"], site.get("folderId", 0), quote(f["title"]))
+                f["groupId"], site.get("folderId", 0), f["title"])
             download_path = os.path.join(base_dir, f["title"])
             if not download_path.endswith(f["extension"]):
                 download_path += "." + f["extension"]
