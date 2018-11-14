@@ -1,0 +1,5 @@
+__pycache__
+results*
+pages
+snapshots
+*.json
