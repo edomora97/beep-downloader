@@ -16,7 +16,10 @@ from download import python_parallel_downloader
 def parse_args():
     parser = argparse.ArgumentParser(description="BeeP downloader")
     parser.add_argument("--person-code", help="Person code of BeeP")
-    parser.add_argument("--password", help="Password of BeeP")
+    pw_group = parser.add_mutually_exclusive_group()
+    pw_group.add_argument("--password", help="Password of BeeP")
+    pw_group.add_argument("--pw-stdin", action="store_true",
+                          help="Read password from stdin")
     parser.add_argument("--out-dir", default="results",
                         help="Destination directory")
     parser.add_argument("--no-cache", action="store_true",
@@ -44,7 +47,9 @@ if __name__ == "__main__":
             username = input("Person code: " + Fore.RESET)
         else:
             username = args.person_code
-        if not args.password:
+        if args.pw_stdin:
+            password = input("Password: " + Fore.RESET)
+        elif not args.password:
             password = getpass.getpass()
         else:
             password = args.password
