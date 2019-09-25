@@ -7,7 +7,6 @@ import os.path
 from colorama import init, Fore, Style
 from requests.auth import HTTPBasicAuth
 
-from login import perform_beep_login
 from remote import get_user_sites, get_download_list
 from cache import get_cache, get_forbidden_files
 from download import python_parallel_downloader

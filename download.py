@@ -65,8 +65,11 @@ def python_parallel_downloader(username, password, to_download, parallel, overwr
                 if cookies is None:
                     login_required.notify()
             with login_needed:
-                while cookies is None:
+                while cookies is None and not done:
                     login_needed.wait()
+            if done:
+                todo.task_done()
+                break
             try:
                 ui.start_download(num, path)
                 if overwrite or not os.path.exists(path):
@@ -89,7 +92,7 @@ def python_parallel_downloader(username, password, to_download, parallel, overwr
                 todo.task_done()
 
     def login_thread():
-        nonlocal cookies
+        nonlocal cookies, done
         while not done:
             with login_required:
                 while cookies is not None and not done:
@@ -100,6 +103,15 @@ def python_parallel_downloader(username, password, to_download, parallel, overwr
                 ui.silent = True
                 cookies = perform_beep_login(username, password)
                 ui.silent = False
+                if not cookies:
+                    done = True
+                    with done_cv:
+                        done_cv.notify_all()
+                    while not todo.empty():
+                        todo.get()
+                        todo.task_done()
+                    login_needed.notify_all()
+                    break
                 login_needed.notify_all()
 
     def printer_thread():

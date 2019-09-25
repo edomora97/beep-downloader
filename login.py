@@ -22,6 +22,9 @@ def perform_beep_login(username, password):
         "https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST", data=sso_data)
     print("    Back to beep")
     session.get("https://beep.metid.polimi.it/polimi/login")
+    if session.cookies.get("JSESSIONID") is None:
+        print("    Login failed!")
+        return None
     print("    Login succesful: JSESSIONID=%s" %
           session.cookies.get("JSESSIONID"))
     return session.cookies
