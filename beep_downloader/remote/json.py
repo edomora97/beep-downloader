@@ -18,10 +18,10 @@ DOWNLOAD_FILE_URL = "https://beep.metid.polimi.it/documents/%d/%d/%s"
 
 class JsonRemote(Remote):
     def get_user_sites(self, include_beep, username, password):
-        get_user_sites(include_beep, username, password)
+        return get_user_sites(include_beep, username, password)
 
     def get_download_list(self, sites, cache, out_dir, forbidden_files):
-        get_download_list(sites, cache, out_dir, forbidden_files)
+        return get_download_list(sites, cache, out_dir, forbidden_files)
 
 
 def get_json(url, username, password):
