@@ -8,6 +8,7 @@ import queue
 import threading
 import traceback
 import json
+import re
 from colorama import init, Fore, Style
 
 from beep_downloader.login import perform_beep_login
@@ -32,6 +33,14 @@ def _do_download(url, path, cookies, ui):
             raise LoginFailed()
         if res.status_code >= 400 and res.status_code <= 499:
             raise Unauthorized()
+        if "Content-Disposition" in res.headers:
+            match = re.search(r'filename="([^"]+)"',
+                              res.headers["Content-Disposition"])
+            if match:
+                filename = match.group(1)
+                ext = filename.rsplit(".")[1]
+                if not path.endswith(ext):
+                    path = path + "." + ext
         dirname = os.path.dirname(path)
         os.makedirs(dirname, exist_ok=True)
         with open(path, "wb") as f:
