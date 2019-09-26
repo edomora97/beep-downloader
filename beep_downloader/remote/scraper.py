@@ -46,7 +46,7 @@ def get_user_sites(session, content):
     if next is not None:
         res = session.get(next["href"])
         content = BeautifulSoup(res.content.decode("latin"), 'html.parser')
-        sites.update(get_user_sites(next, content))
+        sites.update(get_user_sites(session, content))
 
     return sites
 
