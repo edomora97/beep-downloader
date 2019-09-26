@@ -6,13 +6,22 @@ import os.path
 from requests.auth import HTTPBasicAuth
 from colorama import init, Fore, Style
 
-from cache import get_file_from_cache, get_folder_from_cache, get_site_from_cache
-from utils import format_size
+from beep_downloader.cache import get_file_from_cache, get_folder_from_cache, get_site_from_cache
+from beep_downloader.utils import format_size
+from beep_downloader.remote import Remote
 
 GET_FILES_URL = "https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-file-entries?repositoryId=%d&folderId=%d"
 GET_SUBFOLDERS_URL = "https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-folders?repositoryId=%d&parentFolderId=%d"
 USER_SITES_URL = "https://beep.metid.polimi.it/api/secure/jsonws/group/get-user-sites"
-DOWNLOAD_FILE_URL = "https://beep.metid.polimi.it/c/document_library/get_file?groupId=%d&folderId=%d&title=%s"
+DOWNLOAD_FILE_URL = "https://beep.metid.polimi.it/documents/%d/%d/%s"
+
+
+class JsonRemote(Remote):
+    def get_user_sites(self, include_beep, username, password):
+        get_user_sites(include_beep, username, password)
+
+    def get_download_list(self, sites, cache, out_dir, forbidden_files):
+        get_download_list(sites, cache, out_dir, forbidden_files)
 
 
 def get_json(url, username, password):
@@ -24,15 +33,15 @@ def get_json(url, username, password):
 
 def get_structure(folder, repo_id, folder_id, indent, username, password):
     files = get_json(GET_FILES_URL % (repo_id, folder_id), username, password)
-    folders = get_json(GET_SUBFOLDERS_URL % (repo_id, folder_id),
-                       username, password)
+    folders = get_json(GET_SUBFOLDERS_URL % (repo_id, folder_id), username,
+                       password)
     folder["files"] = files
     folder["folders"] = dict()
     print("    %s%s (%d files)" %
           ("    " * indent, folder["name"], len(files)))
     for f in folders:
-        folder["folders"][f["folderId"]] = get_structure(f, repo_id, f["folderId"],
-                                                         indent+1, username, password)
+        folder["folders"][f["folderId"]] = get_structure(
+            f, repo_id, f["folderId"], indent + 1, username, password)
     return folder
 
 
@@ -97,13 +106,16 @@ def get_download_list(sites, cache, out_dir, forbidden_files):
         groupId = str(groupId)
         cache_site = get_site_from_cache(cache, groupId)
         size, download_size, to_download = get_download_list_site(
-            site, cache_site, os.path.join(out_dir, site["name"]), forbidden_files)
+            site, cache_site, os.path.join(out_dir, site["name"]),
+            forbidden_files)
         print(Style.BRIGHT + "  %s" % site["name"])
-        print("      Total size: %s | To download: %s | Files to download: %d" %
-              (format_size(size), format_size(download_size), len(to_download)))
+        print(
+            "      Total size: %s | To download: %s | Files to download: %d" %
+            (format_size(size), format_size(download_size), len(to_download)))
         downloads.extend(to_download)
         total_size += size
         total_download_size += download_size
     print("  Total size: %s | To download: %s | Files to download: %d" %
-          (format_size(total_size), format_size(total_download_size), len(downloads)))
+          (format_size(total_size), format_size(total_download_size),
+           len(downloads)))
     return downloads

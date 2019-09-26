@@ -7,7 +7,12 @@ from html import unescape
 BEEP_LOGIN_URL = "https://aunicalogin.polimi.it/aunicalogin/aunicalogin/controller/IdentificazioneUnica.do?&jaf_currentWFID=main&polij_step=0&__pj0=0&__pj1=5d4116fc58f397506f8c792adf1b1270"
 
 
+login_cache = dict()
+
+
 def perform_beep_login(username, password):
+    if username in login_cache:
+        return login_cache[username]
     session = requests.Session()
     print("    Setting up session")
     session.get("https://beep.metid.polimi.it/polimi/login")
@@ -27,4 +32,5 @@ def perform_beep_login(username, password):
         return None
     print("    Login succesful: JSESSIONID=%s" %
           session.cookies.get("JSESSIONID"))
+    login_cache[username] = session.cookies
     return session.cookies

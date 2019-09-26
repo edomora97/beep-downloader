@@ -10,8 +10,8 @@ import traceback
 import json
 from colorama import init, Fore, Style
 
-from login import perform_beep_login
-from download_ui import DownloadUI, thread_print
+from beep_downloader.login import perform_beep_login
+from beep_downloader.download_ui import DownloadUI, thread_print
 
 CHUNK_SIZE = 4096
 
@@ -41,7 +41,9 @@ def _do_download(url, path, cookies, ui):
                     f.write(chunk)
 
 
-def python_parallel_downloader(username, password, to_download, parallel, overwrite, forbidden_files, forbidden_files_path):
+def python_parallel_downloader(username, password, to_download, parallel,
+                               overwrite, forbidden_files,
+                               forbidden_files_path):
     todo = queue.Queue()
     cookies = None
     done = False
@@ -122,12 +124,13 @@ def python_parallel_downloader(username, password, to_download, parallel, overwr
                 done_cv.wait(2)
 
     def forbidden_files_thread():
+        os.makedirs(os.path.dirname(forbidden_files_path), exist_ok=True)
         while not done:
             with open(forbidden_files_path, "w") as f:
                 f.write(json.dumps(list(forbidden_files)))
                 ui.silent = True
-                thread_print(
-                    "Saved snapshot of forbidden files: %d files" % len(forbidden_files))
+                thread_print("Saved snapshot of forbidden files: %d files" %
+                             len(forbidden_files))
                 ui.silent = False
             with done_cv:
                 done_cv.wait(10)
@@ -140,7 +143,7 @@ def python_parallel_downloader(username, password, to_download, parallel, overwr
     forbidden_files_thr.start()
     threads = []
     for num in range(parallel):
-        thread = threading.Thread(target=download_thread, args=(num,))
+        thread = threading.Thread(target=download_thread, args=(num, ))
         thread.start()
         threads.append(thread)
 

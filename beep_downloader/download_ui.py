@@ -4,7 +4,7 @@ import math
 import time
 from colorama import init, Fore, Style
 
-from utils import format_size
+from beep_downloader.utils import format_size
 
 
 def thread_print(*args, end="\n"):
