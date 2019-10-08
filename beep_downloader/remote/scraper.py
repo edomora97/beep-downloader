@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import datetime
+from colorama import Fore, Style
 
 from beep_downloader.remote import Remote
 from beep_downloader.remote.json import get_download_list
@@ -143,10 +144,14 @@ def extract_folder(session, content, group_id, folder_id):
             if modified_date is not None:
                 try:
                     modified_date = modified_date.get_text().strip()
+                    # dd/mm/yy hh.mm  -->  dd/mm/yy hh:mm
+                    modified_date = modified_date.replace(".", ":")
                     modified_date = int(
                         datetime.datetime.strptime(
                             modified_date, "%d/%m/%y %H:%M").timestamp())
                 except:
+                    print(Style.BRIGHT + Fore.YELLOW +
+                          "Invalid date: %s" % modified_date)
                     modified_date = 0
             else:
                 modified_date = 0
