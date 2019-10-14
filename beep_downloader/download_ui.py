@@ -24,21 +24,21 @@ class DownloadUI:
 
     def start_download(self, thread, path):
         thread_print(
-            f"{Fore.YELLOW}[Downloader{thread:2}] Downloading | {path}")
+            "{}[Downloader{:2}] Downloading | {}".format(Fore.YELLOW, thread, path))
         self.doing += 1
         self.print_status()
 
     def done_download(self, thread, path, skipped=False):
         skipped = " [skipped]" if skipped else ""
         thread_print(
-            f"{Fore.GREEN}[Downloader{thread:2}] Downloaded  | {path} {skipped}")
+            "{}[Downloader{:2}] Downloaded  | {} {}".format(Fore.GREEN, thread, path, skipped))
         self.doing -= 1
         self.todo -= 1
         self.print_status()
 
     def fail_download(self, thread, reason, path, done=False):
         thread_print(
-            f"{Fore.RED}[Downloader{thread:2}]   Failed    | {reason} | {path}")
+            "{}[Downloader{:2}]   Failed    | {} | {}".format(Fore.RED, thread, reason, path))
         self.doing -= 1
         if done:
             self.todo -= 1
@@ -50,7 +50,7 @@ class DownloadUI:
         done = self.num_files - self.todo
         perc = done / self.num_files * 100
         thread_print(
-            f"\r[{done:{self.digits}} / {self.num_files}] ({perc:5.2f}%) CN:{self.doing} -- {format_size(self.current_speed)}/s   \r", end="")
+            "\r[{:{digits}} / {}] ({:5.2f}%) CN:{} -- {}/s   \r".format(done, self.num_files, perc, self.doing, format_size(self.current_speed), digits=self.digits), end="")
 
     def done(self):
         thread_print(" " * 80, end="\r")
