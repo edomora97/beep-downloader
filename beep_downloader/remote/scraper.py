@@ -43,7 +43,7 @@ def get_user_sites(session, content):
         files, folders = extract_course_structure(session, href, id)
         sites[id] = {"name": name, "files": files, "folders": folders}
 
-    next = content.find("a", class_="next")
+    next = content.find(id="column-1").find("a", class_="next")
     if next is not None:
         res = session.get(next["href"])
         content = BeautifulSoup(res.content.decode("latin"), 'html.parser')
