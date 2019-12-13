@@ -12,6 +12,8 @@ from beep_downloader.login import perform_beep_login
 class ScraperRemote(Remote):
     def get_user_sites(self, include_beep, username, password):
         cookies = perform_beep_login(username, password)
+        if cookies is None:
+            return None
         session = requests.Session()
         session.cookies = cookies
         res = session.get("https://beep.metid.polimi.it/polimi/login")

@@ -3,6 +3,8 @@
 import re
 import requests
 from html import unescape
+from bs4 import BeautifulSoup
+from colorama import Fore
 
 BEEP_LOGIN_URL = "https://aunicalogin.polimi.it/aunicalogin/aunicalogin/controller/IdentificazioneUnica.do?&jaf_currentWFID=main&polij_step=0&__pj0=0&__pj1=5d4116fc58f397506f8c792adf1b1270"
 
@@ -19,6 +21,13 @@ def perform_beep_login(username, password):
     print("    Aunicalogin")
     res = session.post(BEEP_LOGIN_URL, data={
         "login": username, "password": password, "evn_conferma": ""})
+
+    # search if the password is expiring
+    content = BeautifulSoup(res.content.decode("latin"), 'html.parser')
+    for mex in content.find_all(class_="jaf-message-fragment"):
+        print(Fore.YELLOW + "    " + mex.get_text().strip())
+        return None
+
     sso_data = {}
     for group in re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]+)"\/>', res.content.decode("latin")):
         sso_data[unescape(group[0])] = unescape(group[1])
@@ -28,7 +37,7 @@ def perform_beep_login(username, password):
     print("    Back to beep")
     session.get("https://beep.metid.polimi.it/polimi/login")
     if session.cookies.get("JSESSIONID") is None:
-        print("    Login failed!")
+        print(Fore.RED + "    Login failed!")
         return None
     print("    Login succesful: JSESSIONID=%s" %
           session.cookies.get("JSESSIONID"))

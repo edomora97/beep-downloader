@@ -90,7 +90,9 @@ def main():
         try:
             structure = remote.get_user_sites(args.include_beep, username,
                                               password)
-        except json.decoder.JSONDecodeError:
+            if structure is None:
+                raise RuntimeError("Login failed")
+        except (json.decoder.JSONDecodeError, RuntimeError):
             print(Style.BRIGHT + Fore.RED +
                   "Login failed, maybe wrong credentials?")
             exit(1)
