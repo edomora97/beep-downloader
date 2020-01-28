@@ -38,7 +38,7 @@ def _do_download(url, path, cookies, ui):
                               res.headers["Content-Disposition"])
             if match:
                 filename = match.group(1)
-                ext = filename.rsplit(".")[1]
+                ext = filename.split(".")[-1]
                 if not path.endswith(ext):
                     path = path + "." + ext
         dirname = os.path.dirname(path)
