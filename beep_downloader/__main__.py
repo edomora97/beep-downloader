@@ -48,10 +48,6 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    main()
-
-
 def main():
     init(autoreset=True)
     print(Style.BRIGHT + Fore.LIGHTGREEN_EX + "Welcome to Beep downloader")
@@ -126,3 +122,7 @@ def main():
         f.write(json.dumps(list(forbidden_files)))
 
     print(Style.BRIGHT + Fore.LIGHTGREEN_EX + "Done! Enjoy c:")
+
+
+if __name__ == "__main__":
+    main()
